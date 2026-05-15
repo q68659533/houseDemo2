@@ -28,3 +28,17 @@ Started: 2026-05-15
   - `next/font/google` loads Noto Sans SC with subset `latin` (no need for `chinese-simplified` subset which may not be available)
   - ESLint config must be `eslint.config.mjs` with FlatCompat for Next.js 15
 ---
+## 2026-05-15 07:10 - US-002
+- Updated landing page with hero section, two application cards with features/tech badges, and system architecture diagram
+- Cards link to `/estimator` and `/analysis` routes with hover effects and gradient accents
+- Architecture diagram shows Next.js → FastAPI/Spring Boot → ML Model flow with styled nodes
+- Used existing tailwind custom colors (`dk-*`, `ac-*`) and animation classes (`animate-fade-in-up`, `animate-fade-in`)
+- Responsive: grid switches to 1 column on mobile, architecture stacks vertically
+- Files changed: `code-front/app/page.tsx`
+- **Learnings for future iterations:**
+  - `animate-fade-in` animation exists in tailwind config but needs explicit `animationFillMode: "both"` when used with inline delay styles
+  - The project uses `group-hover` utilities for card interactions — no JS needed for hover states
+  - Architecture diagram uses nested flex layouts; horizontal layout on desktop (`sm:flex-row`) and vertical on mobile
+  - TechBadge and ArchNode are local components inside page.tsx — fine for single-page use, extract to `components/` if reused
+  - ESLint and typecheck both pass cleanly, build produces static pages for all routes
+---
