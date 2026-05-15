@@ -234,3 +234,40 @@ Started: 2026-05-15
   - `select-none cursor-pointer` on `<th>` makes the sort affordance feel native
   - Manual browser verification needed (no browser automation tools configured in this environment)
 ---
+
+## 2026-05-15 21:30 - US-013
+- Created `ExportButtons` component (`components/analysis/ExportButtons.tsx`) with CSV and PDF export buttons
+- CSV export: UTF-8 BOM header, all 8 columns, escaped values, downloads via blob URL with `property-data_YYYY-MM-DD.csv` filename
+- PDF export: opens new window with formatted HTML table, triggers print dialog, includes first 100 rows only
+- Created shared `lib/export.ts` with `buildCsv`, `downloadCsv`, `buildPrintHtml`, `printPdf` utilities
+- Ghost button styling: transparent background, border, hover effects matching portal design (`hover:border-ac-blue/50 hover:bg-ac-blue/5`)
+- Integrated ExportButtons into DataTable header alongside search input
+- TypeScript and ESLint both pass cleanly
+- Files changed: `code-front/components/analysis/ExportButtons.tsx`, `code-front/lib/export.ts`, `code-front/components/analysis/DataTable.tsx`
+- **Learnings for future iterations:**
+  - Shared export utilities in `lib/export.ts` can be reused if other pages need similar export functionality
+  - CSV BOM (`﻿`) ensures Excel opens UTF-8 CSV correctly with Chinese characters
+  - PDF export via print dialog is simpler than generating real PDFs and fits the "export PDF button opens print dialog" requirement
+  - The `lib/export.ts` pattern (column specs with separate csvValue/displayValue) keeps formatting logic DRY between CSV and PDF
+  - Manual browser verification needed (no browser automation tools configured in this environment)
+---
+
+## 2026-05-15 22:30 - US-014
+- Refactored `lib/api.ts` with `apiFetch` wrapper: 10s timeout, 1 retry on 5xx, typed `ApiError` with error kinds (http/network/timeout)
+- Created `hooks/use-api.ts`: generic `useApi` hook tracking loading/error/data state, auto-toasts on error via global ToastProvider, uses `mountedRef` to avoid state updates after unmount
+- Created `hooks/use-estimate.ts`: domain-specific hook wrapping `estimatePrice`, exposes `estimate(features)` method
+- Created `hooks/use-market-data.ts`: domain-specific hook wrapping `fetchMarketData`, auto-fetches on mount, computes stats via `computeMarketStats`
+- Refactored toast system to Context pattern: `ToastProvider` in `app/layout.tsx`, `useToast` hook reads from context, pages no longer need local ToastContainer
+- Updated `app/estimator/page.tsx` to use `useEstimate` hook
+- Updated `app/analysis/page.tsx` to use `useMarketData` hook (error toasts handled automatically)
+- Updated `app/layout.tsx` to wrap app with `<ToastProvider>`
+- TypeScript and ESLint both pass; production build succeeds
+- Files changed: `code-front/lib/api.ts`, `code-front/hooks/use-api.ts`, `code-front/hooks/use-estimate.ts`, `code-front/hooks/use-market-data.ts`, `code-front/components/ui/toast-provider.tsx`, `code-front/hooks/use-toast.ts`, `code-front/app/layout.tsx`, `code-front/app/estimator/page.tsx`, `code-front/app/analysis/page.tsx`
+- **Learnings for future iterations:**
+  - `apiFetch` centralizes all fetch logic: timeout, retry, error classification — domain functions (estimatePrice, fetchMarketData) are now one-liners
+  - `ApiError` with `kind` field allows hooks to decide retry/Toast behavior without string parsing
+  - `useApi` generic hook pattern: `const { data, loading, error, execute } = useApi(myApiFn)` works for any async function
+  - Toast as Context means pages don't need to import ToastContainer or manage toast state locally
+  - `mountedRef` in useApi prevents "setState on unmounted component" warnings when navigation happens during async requests
+  - Manual browser verification needed (no browser automation tools configured in this environment)
+---
