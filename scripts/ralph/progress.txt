@@ -121,6 +121,26 @@ Started: 2026-05-15
   - Selection hints with conditional rendering provide good UX without extra UI complexity
   - Manual browser verification needed (no browser automation tools configured in this environment)
 ---
+## 2026-05-15 18:00 - US-009
+- Created `/analysis` route with four KPI cards (average price, median price, count, price per sqft)
+- Each KPI card has a distinct gradient top border (blue, purple, green, amber) and icon
+- Filter bar with bedrooms dropdown, year range inputs, area range inputs
+- "Apply" button triggers data fetch and filters; "Reset" button clears all filters
+- Filter state is synced to URL search params (bedrooms, yearMin, yearMax, areaMin, areaMax)
+- Loading skeleton animation for KPI cards while data loads
+- Added `fetchMarketData` and `computeMarketStats` to `lib/api.ts` with Java backend types
+- Client-side filtering: filter logic runs on the fetched `MarketProperty[]` array
+- Error toast notifications on fetch failure
+- Files changed: `code-front/app/analysis/page.tsx`, `code-front/components/analysis/KpiCards.tsx`, `code-front/components/analysis/FilterBar.tsx`, `code-front/lib/api.ts`
+- **Learnings for future iterations:**
+  - The analysis page uses client-side filtering on a dataset of 100 mock properties from the Java backend
+  - KPI cards use `animate-fade-in-up` with `animationFillMode: "both"` for smooth entrance
+  - Filter state lives in two places: `filters` (input state) and `appliedFilters` (committed state) to avoid re-filtering on every keystroke
+  - URL search params are updated via `window.history.replaceState` for client-side-only routing (no Next.js router needed since this is a client page)
+  - `computeMarketStats` is a pure function that computes average, median, count, and price/sqft from `MarketProperty[]`
+  - Manual browser verification needed (no browser automation tools configured in this environment)
+---
+
 ## 2026-05-15 17:47 - US-008
 - Created Spring Boot 3.4.4 project in `code-java/` with Java 21
 - Implemented 4 REST endpoints under `/api/market`:
@@ -142,4 +162,26 @@ Started: 2026-05-15
   - Mock data generation uses the same 7 feature ranges as the ML model validators for consistency
   - What-if analysis uses reasonable defaults for unvaried fields (2000 sqft, 3 bed, 2 bath, 2010, 5000 lot, 5mi, 7 rating)
   - `BatchPredictionRequest` wraps a list of `PropertyInput` records to match the ML API's batch prediction format
+---
+
+## 2026-05-15 19:00 - US-010
+- Created `MarketCharts` component (`components/analysis/MarketCharts.tsx`) with three interactive charts
+- Price distribution bar chart: 6 buckets dynamically computed from min/max price, showing property count per bucket
+- Average price by bedroom count bar chart: groups properties by bedroom count, computes average price per group
+- Price vs area scatter plot: scatter chart using Chart.js ScatterController with squareFootage on X and predictedPrice on Y
+- All charts use dark theme with slate text colors (#64748b ticks, #94a3b8 labels, rgba(28,40,68,0.4) grid lines)
+- Charts receive `filtered` properties from parent, so they auto-update when filters change
+- Responsive 2x2 grid: price distribution + avg by bedrooms side-by-side on desktop, scatter plot spans full width below
+- Mobile: all charts stack vertically (grid-cols-1)
+- Registered `ScatterController` in `components/chart-setup.ts` to enable scatter charts
+- Replaced placeholder in `app/analysis/page.tsx` with `<MarketCharts properties={filtered} />`
+- Files changed: `code-front/components/analysis/MarketCharts.tsx`, `code-front/components/chart-setup.ts`, `code-front/app/analysis/page.tsx`
+- **Learnings for future iterations:**
+  - `ScatterController` must be registered in the central chart-setup.ts alongside other Chart.js controllers
+  - Scatter chart data format: `{ x: number, y: number }[]` — not `{ labels, datasets }` like bar charts
+  - Scatter chart tooltip `raw` property contains the `{ x, y }` point object directly
+  - For responsive multi-chart layouts, `lg:col-span-2` on the third chart creates a nice 2+1 layout in a 2-column grid
+  - Common chart options can be extracted as a const and spread, but TypeScript may need `as const` assertion for deep spreads to work cleanly
+  - Chart.js tooltip callbacks receive different context shapes depending on chart type (Bar vs Scatter)
+  - Manual browser verification needed (no browser automation tools configured in this environment)
 ---
