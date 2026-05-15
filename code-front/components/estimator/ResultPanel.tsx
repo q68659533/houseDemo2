@@ -7,6 +7,7 @@ import type { EstimateResponse } from "@/lib/api";
 
 interface ResultPanelProps {
   result: EstimateResponse;
+  onSave?: () => void;
 }
 
 const featureLabels: Record<string, string> = {
@@ -25,13 +26,14 @@ const featureUnits: Record<string, string> = {
   distance_to_city_center: "miles",
 };
 
-export function ResultPanel({ result }: ResultPanelProps) {
+export function ResultPanel({ result, onSave }: ResultPanelProps) {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
     saveToHistory(result.features, result.prediction);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    onSave?.();
   };
 
   return (

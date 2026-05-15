@@ -8,6 +8,7 @@ import { estimatePrice, type EstimateResponse } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { ToastContainer } from "@/components/ui/toast";
 import { ResultPanel } from "@/components/estimator/ResultPanel";
+import { HistoryPanel } from "@/components/estimator/HistoryPanel";
 
 const formSchema = z.object({
   square_footage: z.coerce
@@ -103,6 +104,7 @@ const fieldMeta: {
 export default function EstimatorPage() {
   const [result, setResult] = useState<EstimateResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const { toasts, addToast, removeToast } = useToast();
 
   const {
@@ -304,7 +306,7 @@ export default function EstimatorPage() {
             </h2>
 
             {result ? (
-              <ResultPanel result={result} />
+              <ResultPanel result={result} onSave={() => setHistoryVersion(v => v + 1)} />
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-dk-900/60 border border-dk-500/30 flex items-center justify-center mb-4">
@@ -332,6 +334,11 @@ export default function EstimatorPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* History */}
+      <div className="mt-8">
+        <HistoryPanel refreshKey={historyVersion} />
       </div>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
