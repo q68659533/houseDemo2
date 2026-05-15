@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import "@/components/chart-setup";
 import { Bar } from "react-chartjs-2";
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const featureLabels: Record<string, string> = {
   square_footage: "建筑面积",
