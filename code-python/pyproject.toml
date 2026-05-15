@@ -1,0 +1,15 @@
+[project]
+name = "property-estimator-api"
+version = "0.1.0"
+description = "FastAPI backend for property price estimation, proxying the ML model API"
+requires-python = ">=3.12"
+
+[tool.mypy]
+ignore_missing_imports = true
+strict_optional = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+testpaths = ["tests"]
