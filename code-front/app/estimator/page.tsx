@@ -7,6 +7,7 @@ import { z } from "zod";
 import { estimatePrice, type EstimateResponse } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { ToastContainer } from "@/components/ui/toast";
+import { ResultPanel } from "@/components/estimator/ResultPanel";
 
 const formSchema = z.object({
   square_footage: z.coerce
@@ -303,46 +304,7 @@ export default function EstimatorPage() {
             </h2>
 
             {result ? (
-              <div className="space-y-6 animate-fade-in-up">
-                {/* Price */}
-                <div className="relative rounded-xl border border-ac-blue/30 bg-gradient-to-br from-ac-blue/10 to-ac-cyan/5 p-6 text-center">
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-ac-blue/10 via-transparent to-ac-cyan/10 opacity-50" />
-                  <div className="relative">
-                    <p className="text-xs text-slate-500 mb-1">预测价格</p>
-                    <p className="text-3xl font-bold text-white">
-                      ${result.prediction.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Model metrics */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border border-dk-500/50 bg-dk-900/50 p-3 text-center">
-                    <p className="text-xs text-slate-500 mb-0.5">R²</p>
-                    <p className="text-sm font-semibold text-white">
-                      {result.model.metrics.r2.toFixed(4)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-dk-500/50 bg-dk-900/50 p-3 text-center">
-                    <p className="text-xs text-slate-500 mb-0.5">MSE</p>
-                    <p className="text-sm font-semibold text-white">
-                      {result.model.metrics.mse.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-dk-500/50 bg-dk-900/50 p-3 text-center">
-                    <p className="text-xs text-slate-500 mb-0.5">MAE</p>
-                    <p className="text-sm font-semibold text-white">
-                      {result.model.metrics.mae.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Timestamp */}
-                <p className="text-xs text-slate-600 text-center">
-                  生成时间:{" "}
-                  {new Date(result.generated_at).toLocaleString("zh-CN")}
-                </p>
-              </div>
+              <ResultPanel result={result} />
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-dk-900/60 border border-dk-500/30 flex items-center justify-center mb-4">
