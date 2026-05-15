@@ -12,6 +12,7 @@ import KpiCards from "@/components/analysis/KpiCards";
 import FilterBar, { defaultFilters, type FilterState } from "@/components/analysis/FilterBar";
 import MarketCharts from "@/components/analysis/MarketCharts";
 import WhatIfPanel from "@/components/analysis/WhatIfPanel";
+import DataTable from "@/components/analysis/DataTable";
 import { useToast } from "@/hooks/use-toast";
 import { ToastContainer } from "@/components/ui/toast";
 
@@ -152,7 +153,12 @@ export default function AnalysisPage() {
       </div>
 
       {/* What-If Analysis */}
-      <WhatIfPanel />
+      <div className="mb-8">
+        <WhatIfPanel />
+      </div>
+
+      {/* Data Table */}
+      <DataTable properties={filtered} />
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>

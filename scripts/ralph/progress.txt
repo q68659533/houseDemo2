@@ -14,7 +14,9 @@
 - API client pattern: `AbortController` + `setTimeout` for timeout handling; clear timeout in both success and error paths
 - Input focus glow: `focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20`
 - Chart.js components must be registered centrally via `components/chart-setup.ts` to avoid duplicate registration errors when multiple chart types are used across the app
-- Use `import "@/components/chart-setup"` in any component that renders charts (Bar, Radar, etc.)
+- Use `import "@/components/chart-setup"` in any component that renders charts (Bar, Radar, Line, Scatter, etc.)
+- Chart.js gradient fill: use `fill: true` + `backgroundColor` callback with `(ctx: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top; bottom } } }) => { ... }`
+- Data tables: use `overflow-x-auto` wrapper + `min-w-[760px]` on `<table>` for mobile horizontal scroll; column definitions as an array with `key`, `label`, `format`, `align` keeps render logic data-driven
 
 Started: 2026-05-15
 ---
@@ -183,5 +185,52 @@ Started: 2026-05-15
   - For responsive multi-chart layouts, `lg:col-span-2` on the third chart creates a nice 2+1 layout in a 2-column grid
   - Common chart options can be extracted as a const and spread, but TypeScript may need `as const` assertion for deep spreads to work cleanly
   - Chart.js tooltip callbacks receive different context shapes depending on chart type (Bar vs Scatter)
+  - Manual browser verification needed (no browser automation tools configured in this environment)
+---
+
+## 2026-05-15 20:10 - US-011
+- Created `WhatIfPanel` component (`components/analysis/WhatIfPanel.tsx`) for what-if analysis
+- Parameter dropdown with 7 options (squareFootage, bedrooms, bathrooms, yearBuilt, lotSize, distanceToCityCenter, schoolRating), each with sensible default ranges and units
+- Start value / end value number inputs with per-parameter min/max/step constraints
+- "Run analysis" button calls Java backend `GET /api/market/whatif` with 20 steps
+- Line chart (Chart.js Line) with gradient fill under curve (blue gradient from 40% to 2% opacity)
+- Tooltips show parameter value and predicted price on hover
+- Empty state with icon and hint text when no analysis has been run
+- Loading state with disabled button and "分析中..." text
+- Client-side validation: start < end, both must be valid numbers
+- Added `fetchWhatIf` and `WhatIfResponse`/`WhatIfParameter` types to `lib/api.ts`
+- Integrated WhatIfPanel into `app/analysis/page.tsx` below market charts
+- TypeScript and ESLint both pass cleanly
+- Files changed: `code-front/components/analysis/WhatIfPanel.tsx`, `code-front/app/analysis/page.tsx`, `code-front/lib/api.ts`
+- **Learnings for future iterations:**
+  - Chart.js gradient fill requires `fill: true` on the dataset and a `backgroundColor` callback receiving `{ chart }` to access the canvas context and chartArea
+  - `tension: 0.4` creates a smooth curved line instead of straight segments
+  - Parameter config array pattern works well for dynamic dropdowns with per-option defaults and validation constraints
+  - `Line` chart from `react-chartjs-2` requires `LineElement` and `Filler` to be registered (already done in `chart-setup.ts`)
+  - Distance-to-city-center values need `.toFixed(1)` formatting in x-axis labels; integer params use `Math.round`
+  - Manual browser verification needed (no browser automation tools configured in this environment)
+---
+
+## 2026-05-15 21:00 - US-012
+- Created `DataTable` component (`components/analysis/DataTable.tsx`) - responsive sortable searchable data table
+- 8 columns: 面积/卧室/浴室/建造年份/占地面积/距市中心/学校评分/预测价格 (squareFootage, bedrooms, bathrooms, yearBuilt, lotSize, distanceToCityCenter, schoolRating, predictedPrice)
+- Column definitions in a single `columns` array with `key`, `label`, `format`, `align` - keeps render logic data-driven
+- Click column header to toggle ascending/descending sort; defaults to predictedPrice desc; SortIcon shows active direction in `ac-blue`
+- Search input with magnifying-glass icon filters rows by any column's formatted string value (case-insensitive substring match)
+- Search and sort changes reset pagination back to first 50 rows
+- Empty states: "暂无数据" when no properties, "未找到匹配的房产" when filter excludes all
+- Row hover highlight via `hover:bg-dk-700/30`; predicted price column highlighted with `font-semibold text-white`
+- Mobile: `overflow-x-auto` wrapper with `min-w-[760px]` table ensures horizontal scroll instead of cramping
+- Pagination: shows first 50 rows, "加载更多" button reveals 50 more at a time; button hidden when all rows visible
+- Header shows total/filtered counts; integrated into `/analysis` below WhatIfPanel, receives `filtered` properties so it respects active filters
+- TypeScript and ESLint both pass; production build succeeds
+- Files changed: `code-front/components/analysis/DataTable.tsx`, `code-front/app/analysis/page.tsx`
+- **Learnings for future iterations:**
+  - Column definition array pattern (`{ key, label, format, align }[]`) scales much better than inlining each cell - format functions encapsulate display logic per column
+  - Sorting on a typed `keyof MarketProperty` gives type safety; the values are all numbers so `<`/`>` comparison works directly without converting
+  - When search/sort/filter changes, reset pagination to first page (PAGE_SIZE) so users don't end up on an empty load-more state
+  - Mobile horizontal scroll: `overflow-x-auto` on a wrapper div, then `min-w-[760px]` on the table forces the scroll when viewport is narrower; without `min-w`, the table just shrinks columns
+  - `whitespace-nowrap` on `<td>` keeps numeric values on one line so columns line up
+  - `select-none cursor-pointer` on `<th>` makes the sort affordance feel native
   - Manual browser verification needed (no browser automation tools configured in this environment)
 ---
