@@ -9,6 +9,10 @@
 - Error boundaries must be client components (`"use client"`)
 - ESLint config uses `@eslint/eslintrc` FlatCompat with `eslint.config.mjs`
 - Env vars need `NEXT_PUBLIC_*` prefix for browser access
+- Form validation: react-hook-form + zod v4 requires `resolver: zodResolver(schema) as Resolver<FormData>` cast when using `z.coerce`
+- Toast system (`use-toast` hook + `ToastContainer` component) is reusable across all pages
+- API client pattern: `AbortController` + `setTimeout` for timeout handling; clear timeout in both success and error paths
+- Input focus glow: `focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20`
 
 Started: 2026-05-15
 ---
@@ -41,4 +45,39 @@ Started: 2026-05-15
   - Architecture diagram uses nested flex layouts; horizontal layout on desktop (`sm:flex-row`) and vertical on mobile
   - TechBadge and ArchNode are local components inside page.tsx — fine for single-page use, extract to `components/` if reused
   - ESLint and typecheck both pass cleanly, build produces static pages for all routes
+---
+## 2026-05-15 15:35 - US-003
+- Created FastAPI project in `code-python/` with POST `/api/estimate` endpoint
+- Pydantic models (`PropertyFeatures`) validate all 7 ML fields with correct ranges (square_footage 100-50000, bedrooms 0-20, etc.)
+- `MLClient` class in `ml_client.py` calls upstream ML API POST `/predict` and GET `/model-info` via httpx
+- `EstimateResponse` includes prediction, echoed features, model metadata (coefficients, R2, MSE, MAE), and ISO timestamp
+- Error handling: ML API unavailable returns HTTP 503 via custom exception handler; invalid input returns HTTP 422 via FastAPI/Pydantic
+- CORS configured for Next.js frontend origins (`http://localhost:3000`)
+- 19 pytest tests covering health, estimate success, 12 validation error cases, extra field rejection, 503 ML down, model-info, CORS preflight
+- mypy typecheck passes with no issues
+- Files changed: `code-python/app/config.py`, `code-python/app/main.py`, `code-python/app/ml_client.py`, `code-python/app/models.py`, `code-python/tests/test_api.py`, `code-python/pyproject.toml`, `code-python/requirements.txt`, `code-python/.env.example`
+- **Learnings for future iterations:**
+  - `code-python` is the property estimator API (proxies to ML model); `code-api` is the actual ML model service
+  - `pydantic-settings` with `SettingsConfigDict(env_file=...)` loads `.env.local` and `.env` automatically
+  - Use `app.dependency_overrides[get_ml_client]` in tests to inject fake/mock ML client
+  - `ConfigDict(extra="forbid")` on Pydantic models prevents unexpected fields from sneaking through
+  - httpx `ASGITransport` is the modern way to test FastAPI apps asynchronously
+  - Model metadata coefficients are sorted by absolute value descending (from `code-api` training)
+---
+## 2026-05-15 15:22 - US-004
+- Created `/estimator` route with a comprehensive form containing all 7 ML fields (square_footage, bedrooms, bathrooms, year_built, lot_size, distance_to_city_center, school_rating)
+- Client-side validation using React Hook Form + Zod with `@hookform/resolvers`, matching Python backend Pydantic constraints exactly
+- Form styled with dark theme inputs (`bg-dk-900/60`, `border-dk-500/50`) and blue focus glow (`focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20`)
+- Submit button with loading spinner state during API call, calls Python backend `POST /api/estimate`
+- Error toast notifications for API/network errors using custom hook-based toast system
+- Added minimal result preview panel (price + model metrics) that appears after successful prediction
+- Created reusable patterns: `lib/api.ts` (API client with AbortController timeout), `hooks/use-toast.ts` (toast hook), `components/ui/toast.tsx` (toast container)
+- Files changed: `code-front/app/estimator/page.tsx`, `code-front/lib/api.ts`, `code-front/hooks/use-toast.ts`, `code-front/components/ui/toast.tsx`, `code-front/package.json`, `code-front/CLAUDE.md`
+- **Learnings for future iterations:**
+  - With zod v4, `z.coerce.number()` infers input type as `unknown` — must cast resolver: `zodResolver(schema) as Resolver<FormData>`
+  - Install `react-hook-form`, `zod`, `@hookform/resolvers` for all form-heavy stories (US-005 through US-013)
+  - The toast system (`use-toast` + `ToastContainer`) is reusable across all pages — import and render at page level
+  - API client pattern: `AbortController` + `setTimeout` for timeout handling; clear timeout in both success and error paths
+  - Form grid uses `grid-cols-1 sm:grid-cols-2` for responsive 2-column layout on desktop
+  - Input focus ring uses `focus:ring-2 focus:ring-ac-blue/20` for the blue glow effect requested in the PRD
 ---

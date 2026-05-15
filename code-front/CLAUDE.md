@@ -36,3 +36,19 @@ Use the custom Tailwind color palettes defined in `tailwind.config.ts`:
 ### ESLint
 - Config is `eslint.config.mjs` using `@eslint/eslintrc` FlatCompat
 - Extends `next/core-web-vitals` and `next/typescript`
+
+### Form Validation
+- Use `react-hook-form` + `zod` + `@hookform/resolvers`
+- With zod v4, `z.coerce.number()` infers input type as `unknown` — cast the resolver: `resolver: zodResolver(schema) as Resolver<FormData>`
+- Import `Resolver` type from `react-hook-form`
+- Validation rules must match the Python backend Pydantic models exactly
+
+### API Client Pattern
+- Use `AbortController` with a timeout for all fetch calls
+- Wrap errors in descriptive messages; handle `AbortError` as timeout
+- API types are exported from `lib/api.ts` and shared between client and server
+
+### Toast Notifications
+- Simple hook-based system in `hooks/use-toast.ts` with auto-dismiss after 5s
+- Toast container is a fixed-position component rendered at page level
+- Supports error, success, and info types with color-coded borders
