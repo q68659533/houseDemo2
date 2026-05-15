@@ -1,0 +1,30 @@
+# Ralph Progress Log
+## Codebase Patterns
+- Next.js App Router with file-based routing in `code-front/app/`
+- Dark theme colors defined in tailwind.config.ts as `dk` (dark) and `ac` (accent) palettes
+- Use `next/font` for loading Noto Sans SC (variable: `--font-noto-sans-sc`)
+- Glassmorphism navbar: `bg-dk-950/80 backdrop-blur-xl`
+- Background effects implemented as separate `Background` component (orbs, grid, scanline)
+- Page structure: `app/page.tsx` (home), `app/estimator/page.tsx`, `app/analysis/page.tsx`
+- Error boundaries must be client components (`"use client"`)
+- ESLint config uses `@eslint/eslintrc` FlatCompat with `eslint.config.mjs`
+- Env vars need `NEXT_PUBLIC_*` prefix for browser access
+
+Started: 2026-05-15
+---
+## 2026-05-15 14:35 - US-001
+- Initialized Next.js 15 project with App Router, TypeScript, Tailwind CSS in `code-front/`
+- Configured dark theme (bg #030711, text #cbd5e1) with custom dk/ac color palettes in tailwind.config.ts
+- Created shared layout with Noto Sans SC font, sticky navbar with glassmorphism, footer
+- Implemented error.tsx (client component error boundary) and loading.tsx at layout level
+- Added animated background component with floating orbs, grid pattern, scanline effect
+- Created placeholder routes for /estimator and /analysis
+- Set up environment variables (.env.local/.env.example) for ML_API_URL, PYTHON_API_URL, JAVA_API_URL
+- Files changed: `code-front/app/*`, `code-front/components/*`, `code-front/tailwind.config.ts`, `code-front/eslint.config.mjs`, `code-front/package.json`, etc.
+- **Learnings for future iterations:**
+  - The project already had a partial Next.js setup (package.json, tsconfig, tailwind config) but missing app/ directory and node_modules
+  - Tailwind custom colors `dk` and `ac` are already defined in the config - use these for consistency
+  - Navbar active state uses `pathname === href` comparison from `usePathname()`
+  - `next/font/google` loads Noto Sans SC with subset `latin` (no need for `chinese-simplified` subset which may not be available)
+  - ESLint config must be `eslint.config.mjs` with FlatCompat for Next.js 15
+---

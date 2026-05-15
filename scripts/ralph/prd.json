@@ -1,0 +1,254 @@
+{
+  "project": "PropertyPortal",
+  "branchName": "ralph/property-portal",
+  "description": "多应用 Next.js 房产智能门户 - 统一托管房产价值估算器（Python FastAPI）与房产市场分析（Java Spring Boot），集成 ML 房价预测模型",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Next.js 项目初始化与共享布局",
+      "description": "As a developer, I need a Next.js project with shared layout so both apps have consistent navigation and styling.",
+      "acceptanceCriteria": [
+        "Initialize Next.js 15 project with App Router, TypeScript, Tailwind CSS",
+        "Configure dark theme background #030711 and text color #cbd5e1",
+        "Create shared layout with sticky navbar and glassmorphism effect",
+        "Implement error.tsx and loading.tsx at layout level",
+        "Add environment variables for ML_API_URL, PYTHON_API_URL, JAVA_API_URL",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "首页 Landing Page",
+      "description": "As a user, I want a landing page that introduces both applications and shows the system architecture.",
+      "acceptanceCriteria": [
+        "Hero section with title and gradient text effect",
+        "Two application cards with feature lists and tech badges",
+        "System architecture diagram showing Next.js to FastAPI/Spring Boot to ML Model flow",
+        "Cards navigate to respective apps on click",
+        "Responsive layout for mobile and desktop",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Python FastAPI 后端 - 房产估算 API",
+      "description": "As a developer, I need a Python backend that validates inputs and calls the ML model for price predictions.",
+      "acceptanceCriteria": [
+        "Create FastAPI project with POST /api/estimate endpoint",
+        "Pydantic validation for all 7 ML fields with correct ranges",
+        "Endpoint calls ML API POST /predict and returns result",
+        "Endpoint includes model metadata R2 MSE MAE coefficients in response",
+        "Error handling: ML API unavailable returns 503, invalid input returns 422",
+        "CORS configured for Next.js frontend",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "房产估价器表单页面",
+      "description": "As a user, I want to input property details through a validated form to get a price estimate.",
+      "acceptanceCriteria": [
+        "Create /estimator route with form containing all 7 ML fields",
+        "Client-side validation with React Hook Form and Zod",
+        "Form styled with dark theme inputs and blue focus glow",
+        "Submit calls Python backend POST /api/estimate",
+        "Loading state on submit button during API call",
+        "Error toast notification for API errors",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "预测结果展示与特征贡献图",
+      "description": "As a user, I want to see the predicted price and understand which features contributed most.",
+      "acceptanceCriteria": [
+        "Results panel appears after successful prediction with animation",
+        "Price display card with gradient border showing predicted price",
+        "Property summary card showing all 7 input values",
+        "Model confidence section showing R2 MSE MAE metrics",
+        "Feature contribution bar chart using Chart.js with dark theme",
+        "Save to history button stores result in localStorage",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "历史记录功能",
+      "description": "As a user, I want to save and view my past estimates so I can reference them later.",
+      "acceptanceCriteria": [
+        "localStorage stores entries with 7 features plus price timestamp and ID",
+        "History panel displays price square footage bedrooms and bathrooms per item",
+        "Delete individual item and clear all button",
+        "Empty state message when no history",
+        "History persists across page reloads",
+        "Maximum 50 entries with auto-purge of oldest",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "房产对比功能",
+      "description": "As a user, I want to compare 2-3 saved properties side by side.",
+      "acceptanceCriteria": [
+        "Each history item has checkbox for comparison selection",
+        "Comparison panel shows when 2-3 items selected",
+        "Comparison table showing all 7 features plus price side by side",
+        "Radar chart comparing normalized feature values",
+        "Message shown when fewer than 2 selected",
+        "Checkboxes disabled when more than 3 selected",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Java Spring Boot 后端 - 市场数据与统计 API",
+      "description": "As a developer, I need a Java backend that generates market data and provides summary statistics.",
+      "acceptanceCriteria": [
+        "Spring Boot 3.4.4 project with Java 21",
+        "GET /api/market/data generates mock dataset and calls ML batch prediction",
+        "GET /api/market/stats computes average median count and price per sqft",
+        "GET /api/market/model-info caches ML response for 5 minutes using Caffeine",
+        "GET /api/market/whatif runs batch predictions across parameter range",
+        "CORS configured for Next.js frontend",
+        "ProblemDetail error handling for API errors",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "市场分析仪表盘 - KPI 与筛选器",
+      "description": "As a user, I want to see key market metrics and filter the dataset.",
+      "acceptanceCriteria": [
+        "Create /analysis route with four KPI cards",
+        "KPI cards: average price median price count price per sqft",
+        "Colored top border gradient per card",
+        "Filter bar: bedrooms dropdown year range area range",
+        "Apply filter button triggers data fetch reset clears filters",
+        "Filter state in URL search params",
+        "Loading skeleton for KPI cards",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "市场可视化图表",
+      "description": "As a user, I want to see market trends visualized through interactive charts.",
+      "acceptanceCriteria": [
+        "Price distribution bar chart with property count per bucket",
+        "Average price by bedroom count bar chart",
+        "Price vs area scatter plot",
+        "All charts use dark theme with slate text colors",
+        "Charts update when filters change",
+        "Responsive 2x2 grid on desktop stacked on mobile",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "假设分析工具",
+      "description": "As a user, I want to see how changing one parameter affects predicted price.",
+      "acceptanceCriteria": [
+        "What-if panel with parameter dropdown start value end value inputs",
+        "Run analysis button calls Java backend GET /api/market/whatif",
+        "Line chart showing price curve across parameter range",
+        "Gradient fill under line with tooltip on hover",
+        "Reasonable default base values for unvaried fields",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "响应式数据表格",
+      "description": "As a user, I want to browse all market data in a sortable searchable table.",
+      "acceptanceCriteria": [
+        "Data table with 8 columns: area bedrooms bathrooms year lot_size distance school_rating price",
+        "Click column header to sort ascending descending",
+        "Search input filters rows by any column value",
+        "Table rows have hover highlight effect",
+        "Responsive with horizontal scroll on mobile",
+        "Show first 50 rows with load more pagination",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "数据导出功能",
+      "description": "As a user, I want to export market data for offline analysis.",
+      "acceptanceCriteria": [
+        "Export CSV button downloads filtered dataset with UTF-8 BOM",
+        "Export PDF button opens print dialog with formatted HTML table",
+        "Ghost button styling matching portal design",
+        "CSV includes all columns PDF includes first 100 rows",
+        "Filename includes date: property-data_YYYY-MM-DD.csv",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "API 客户端封装与全局错误处理",
+      "description": "As a developer, I need reusable API clients and consistent error handling across the frontend.",
+      "acceptanceCriteria": [
+        "Custom React hooks: useApi useEstimate useMarketData",
+        "Fetch wrapper with base URL from env vars 10s timeout 1 retry on 5xx",
+        "Global error boundary with friendly fallback UI",
+        "API error toast notifications with consistent styling",
+        "All API calls handle network errors gracefully",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
