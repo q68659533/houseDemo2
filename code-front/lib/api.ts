@@ -113,6 +113,61 @@ export function computeMarketStats(properties: MarketProperty[]): MarketStats {
   };
 }
 
+export interface WhatIfPoint {
+  parameterValue: number;
+  predictedPrice: number;
+}
+
+export interface WhatIfResponse {
+  parameter: string;
+  points: WhatIfPoint[];
+}
+
+export type WhatIfParameter =
+  | "squareFootage"
+  | "bedrooms"
+  | "bathrooms"
+  | "yearBuilt"
+  | "lotSize"
+  | "distanceToCityCenter"
+  | "schoolRating";
+
+export async function fetchWhatIf(
+  parameter: WhatIfParameter,
+  startValue: number,
+  endValue: number,
+  steps = 20
+): Promise<WhatIfResponse> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  const url = new URL(`${JAVA_API_URL}/api/market/whatif`);
+  url.searchParams.set("parameter", parameter);
+  url.searchParams.set("startValue", String(startValue));
+  url.searchParams.set("endValue", String(endValue));
+  url.searchParams.set("steps", String(steps));
+
+  try {
+    const res = await fetch(url.toString(), {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err: ApiError = await res.json().catch(() => ({ detail: "Unknown error" }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    return res.json();
+  } catch (e) {
+    clearTimeout(timeout);
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error("请求超时，请稍后重试");
+    }
+    throw e;
+  }
+}
+
 export async function estimatePrice(
   features: PropertyFeatures
 ): Promise<EstimateResponse> {
