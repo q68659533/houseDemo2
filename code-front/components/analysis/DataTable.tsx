@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { MarketProperty } from "@/lib/api";
+import ExportButtons from "@/components/analysis/ExportButtons";
 
 interface DataTableProps {
   properties: MarketProperty[];
@@ -138,8 +139,10 @@ export default function DataTable({ properties }: DataTableProps) {
             共 {properties.length} 条，筛选后 {sorted.length} 条
           </p>
         </div>
-        <div className="relative w-full sm:w-72">
-          <input
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <ExportButtons properties={sorted} />
+          <div className="relative w-full sm:w-72">
+            <input
             type="text"
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -160,6 +163,7 @@ export default function DataTable({ properties }: DataTableProps) {
             />
           </svg>
         </div>
+      </div>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-dk-500/40">
