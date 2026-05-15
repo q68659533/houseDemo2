@@ -35,6 +35,84 @@ export interface ApiError {
   error?: string;
 }
 
+const JAVA_API_URL = process.env.NEXT_PUBLIC_JAVA_API_URL || "http://localhost:8080";
+
+export interface MarketProperty {
+  squareFootage: number;
+  bedrooms: number;
+  bathrooms: number;
+  yearBuilt: number;
+  lotSize: number;
+  distanceToCityCenter: number;
+  schoolRating: number;
+  predictedPrice: number;
+}
+
+export interface MarketDataResponse {
+  properties: MarketProperty[];
+  count: number;
+  generatedAt: string;
+}
+
+export interface MarketStats {
+  averagePrice: number;
+  medianPrice: number;
+  count: number;
+  pricePerSqft: number;
+}
+
+export async function fetchMarketData(): Promise<MarketDataResponse> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const res = await fetch(`${JAVA_API_URL}/api/market/data`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err: ApiError = await res.json().catch(() => ({ detail: "Unknown error" }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    return res.json();
+  } catch (e) {
+    clearTimeout(timeout);
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error("请求超时，请稍后重试");
+    }
+    throw e;
+  }
+}
+
+export function computeMarketStats(properties: MarketProperty[]): MarketStats {
+  if (properties.length === 0) {
+    return { averagePrice: 0, medianPrice: 0, count: 0, pricePerSqft: 0 };
+  }
+
+  const prices = properties.map((p) => p.predictedPrice);
+  prices.sort((a, b) => a - b);
+
+  const averagePrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+  const mid = Math.floor(prices.length / 2);
+  const medianPrice =
+    prices.length % 2 === 0
+      ? (prices[mid - 1] + prices[mid]) / 2
+      : prices[mid];
+
+  const totalSqft = properties.reduce((sum, p) => sum + p.squareFootage, 0);
+  const pricePerSqft = totalSqft > 0 ? averagePrice / totalSqft : 0;
+
+  return {
+    averagePrice,
+    medianPrice,
+    count: properties.length,
+    pricePerSqft,
+  };
+}
+
 export async function estimatePrice(
   features: PropertyFeatures
 ): Promise<EstimateResponse> {
