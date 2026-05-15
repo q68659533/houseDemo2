@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { Toast, ToastType } from "@/hooks/use-toast";
+import type { Toast, ToastType } from "@/components/ui/toast-provider";
 
 interface ToastContainerProps {
   toasts: Toast[];

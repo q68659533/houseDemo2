@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Background } from "@/components/background";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 const notoSansSC = Noto_Sans_SC({
   subsets: ["latin"],
@@ -25,11 +26,13 @@ export default function RootLayout({
     <html lang="zh-CN" className={notoSansSC.variable}>
       <body className="font-sans antialiased">
         <Background />
-        <div className="relative z-10 min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <ToastProvider>
+          <div className="relative z-10 min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );

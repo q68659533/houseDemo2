@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { estimatePrice, type EstimateResponse } from "@/lib/api";
+import { useEstimate } from "@/hooks/use-estimate";
 import { useToast } from "@/hooks/use-toast";
-import { ToastContainer } from "@/components/ui/toast";
 import { ResultPanel } from "@/components/estimator/ResultPanel";
 import { HistoryPanel } from "@/components/estimator/HistoryPanel";
 
@@ -102,10 +101,9 @@ const fieldMeta: {
 ];
 
 export default function EstimatorPage() {
-  const [result, setResult] = useState<EstimateResponse | null>(null);
-  const [loading, setLoading] = useState(false);
   const [historyVersion, setHistoryVersion] = useState(0);
-  const { toasts, addToast, removeToast } = useToast();
+  const { addToast } = useToast();
+  const { data: result, loading, estimate, reset: resetEstimate } = useEstimate();
 
   const {
     register,
@@ -116,25 +114,18 @@ export default function EstimatorPage() {
   });
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const res = await estimatePrice({
-        square_footage: data.square_footage,
-        bedrooms: data.bedrooms,
-        bathrooms: data.bathrooms,
-        year_built: data.year_built,
-        lot_size: data.lot_size,
-        distance_to_city_center: data.distance_to_city_center,
-        school_rating: data.school_rating,
-      });
-      setResult(res);
+    resetEstimate();
+    const res = await estimate({
+      square_footage: data.square_footage,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      year_built: data.year_built,
+      lot_size: data.lot_size,
+      distance_to_city_center: data.distance_to_city_center,
+      school_rating: data.school_rating,
+    });
+    if (res) {
       addToast("预测成功！", "success");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "请求失败，请稍后重试";
-      addToast(message, "error");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -340,8 +331,6 @@ export default function EstimatorPage() {
       <div className="mt-8">
         <HistoryPanel refreshKey={historyVersion} />
       </div>
-
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

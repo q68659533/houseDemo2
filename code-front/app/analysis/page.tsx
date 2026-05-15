@@ -2,19 +2,13 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  fetchMarketData,
-  computeMarketStats,
-  type MarketProperty,
-  type MarketStats,
-} from "@/lib/api";
+import { computeMarketStats, type MarketProperty } from "@/lib/api";
+import { useMarketData } from "@/hooks/use-market-data";
 import KpiCards from "@/components/analysis/KpiCards";
 import FilterBar, { defaultFilters, type FilterState } from "@/components/analysis/FilterBar";
 import MarketCharts from "@/components/analysis/MarketCharts";
 import WhatIfPanel from "@/components/analysis/WhatIfPanel";
 import DataTable from "@/components/analysis/DataTable";
-import { useToast } from "@/hooks/use-toast";
-import { ToastContainer } from "@/components/ui/toast";
 
 function filtersFromParams(params: URLSearchParams): FilterState {
   return {
@@ -56,34 +50,13 @@ function applyFilters(properties: MarketProperty[], filters: FilterState): Marke
 
 export default function AnalysisPage() {
   const searchParams = useSearchParams();
-  const { toasts, addToast, removeToast } = useToast();
+  // useMarketData auto-fetches on mount and auto-toasts errors via the global toast provider.
+  const { properties: rawProperties, loading } = useMarketData();
 
-  const [properties, setProperties] = useState<MarketProperty[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(() =>
-    filtersFromParams(new URLSearchParams(window.location.search))
+    filtersFromParams(new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""))
   );
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(filters);
-
-  // Load data on mount
-  useEffect(() => {
-    let cancelled = false;
-    fetchMarketData()
-      .then((data) => {
-        if (!cancelled) {
-          setProperties(data.properties);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          addToast(err instanceof Error ? err.message : "加载市场数据失败", "error");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [addToast]);
 
   // Sync URL params on mount
   useEffect(() => {
@@ -93,14 +66,11 @@ export default function AnalysisPage() {
   }, [searchParams]);
 
   const filtered = useMemo(
-    () => applyFilters(properties, appliedFilters),
-    [properties, appliedFilters]
+    () => applyFilters(rawProperties, appliedFilters),
+    [rawProperties, appliedFilters]
   );
 
-  const stats: MarketStats = useMemo(
-    () => computeMarketStats(filtered),
-    [filtered]
-  );
+  const stats = useMemo(() => computeMarketStats(filtered), [filtered]);
 
   const handleApply = useCallback(() => {
     setAppliedFilters(filters);
@@ -159,8 +129,6 @@ export default function AnalysisPage() {
 
       {/* Data Table */}
       <DataTable properties={filtered} />
-
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

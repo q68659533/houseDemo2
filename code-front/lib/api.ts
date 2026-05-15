@@ -1,4 +1,104 @@
 const PYTHON_API_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || "http://localhost:8001";
+const JAVA_API_URL = process.env.NEXT_PUBLIC_JAVA_API_URL || "http://localhost:8080";
+
+const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_RETRIES = 1;
+
+// ── Shared types & errors ──────────────────────────────────────────────────
+
+export interface ApiState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface ApiErrorBody {
+  detail: string;
+  error?: string;
+}
+
+export type ApiErrorKind = "http" | "network" | "timeout";
+
+export class ApiError extends Error {
+  readonly kind: ApiErrorKind;
+  readonly status?: number;
+
+  constructor(message: string, kind: ApiErrorKind, status?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.kind = kind;
+    this.status = status;
+  }
+}
+
+// ── Shared fetch wrapper ───────────────────────────────────────────────────
+
+export interface ApiFetchOptions {
+  timeoutMs?: number;
+  retries?: number;
+}
+
+async function attempt<T>(
+  url: string,
+  init: RequestInit | undefined,
+  timeoutMs: number
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, { ...init, signal: controller.signal });
+
+    if (!res.ok) {
+      const body: ApiErrorBody = await res
+        .json()
+        .catch(() => ({ detail: `HTTP ${res.status}` }));
+      const message = body.detail || body.error || `HTTP ${res.status}`;
+      throw new ApiError(message, "http", res.status);
+    }
+
+    return (await res.json()) as T;
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new ApiError("请求超时，请稍后重试", "timeout");
+    }
+    if (e instanceof TypeError) {
+      throw new ApiError("网络连接失败，请检查网络后重试", "network");
+    }
+    throw new ApiError(
+      e instanceof Error ? e.message : "未知错误",
+      "network"
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function apiFetch<T>(
+  url: string,
+  init?: RequestInit,
+  options: ApiFetchOptions = {}
+): Promise<T> {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const retries = options.retries ?? DEFAULT_RETRIES;
+
+  let lastErr: ApiError | undefined;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await attempt<T>(url, init, timeoutMs);
+    } catch (e) {
+      const err = e as ApiError;
+      lastErr = err;
+      const retriable =
+        err.kind === "http" && err.status !== undefined && err.status >= 500;
+      if (!retriable || i === retries) throw err;
+    }
+  }
+  throw lastErr ?? new ApiError("请求失败", "network");
+}
+
+// ── Domain types ───────────────────────────────────────────────────────────
 
 export interface PropertyFeatures {
   square_footage: number;
@@ -30,13 +130,6 @@ export interface EstimateResponse {
   generated_at: string;
 }
 
-export interface ApiError {
-  detail: string;
-  error?: string;
-}
-
-const JAVA_API_URL = process.env.NEXT_PUBLIC_JAVA_API_URL || "http://localhost:8080";
-
 export interface MarketProperty {
   squareFootage: number;
   bedrooms: number;
@@ -61,30 +154,54 @@ export interface MarketStats {
   pricePerSqft: number;
 }
 
-export async function fetchMarketData(): Promise<MarketDataResponse> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const res = await fetch(`${JAVA_API_URL}/api/market/data`, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const err: ApiError = await res.json().catch(() => ({ detail: "Unknown error" }));
-      throw new Error(err.detail || `HTTP ${res.status}`);
-    }
-
-    return res.json();
-  } catch (e) {
-    clearTimeout(timeout);
-    if (e instanceof Error && e.name === "AbortError") {
-      throw new Error("请求超时，请稍后重试");
-    }
-    throw e;
-  }
+export interface WhatIfPoint {
+  parameterValue: number;
+  predictedPrice: number;
 }
+
+export interface WhatIfResponse {
+  parameter: string;
+  points: WhatIfPoint[];
+}
+
+export type WhatIfParameter =
+  | "squareFootage"
+  | "bedrooms"
+  | "bathrooms"
+  | "yearBuilt"
+  | "lotSize"
+  | "distanceToCityCenter"
+  | "schoolRating";
+
+// ── Endpoint wrappers ──────────────────────────────────────────────────────
+
+export function estimatePrice(features: PropertyFeatures): Promise<EstimateResponse> {
+  return apiFetch<EstimateResponse>(`${PYTHON_API_URL}/api/estimate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(features),
+  });
+}
+
+export function fetchMarketData(): Promise<MarketDataResponse> {
+  return apiFetch<MarketDataResponse>(`${JAVA_API_URL}/api/market/data`);
+}
+
+export function fetchWhatIf(
+  parameter: WhatIfParameter,
+  startValue: number,
+  endValue: number,
+  steps = 20
+): Promise<WhatIfResponse> {
+  const url = new URL(`${JAVA_API_URL}/api/market/whatif`);
+  url.searchParams.set("parameter", parameter);
+  url.searchParams.set("startValue", String(startValue));
+  url.searchParams.set("endValue", String(endValue));
+  url.searchParams.set("steps", String(steps));
+  return apiFetch<WhatIfResponse>(url.toString());
+}
+
+// ── Pure helpers ───────────────────────────────────────────────────────────
 
 export function computeMarketStats(properties: MarketProperty[]): MarketStats {
   if (properties.length === 0) {
@@ -111,89 +228,4 @@ export function computeMarketStats(properties: MarketProperty[]): MarketStats {
     count: properties.length,
     pricePerSqft,
   };
-}
-
-export interface WhatIfPoint {
-  parameterValue: number;
-  predictedPrice: number;
-}
-
-export interface WhatIfResponse {
-  parameter: string;
-  points: WhatIfPoint[];
-}
-
-export type WhatIfParameter =
-  | "squareFootage"
-  | "bedrooms"
-  | "bathrooms"
-  | "yearBuilt"
-  | "lotSize"
-  | "distanceToCityCenter"
-  | "schoolRating";
-
-export async function fetchWhatIf(
-  parameter: WhatIfParameter,
-  startValue: number,
-  endValue: number,
-  steps = 20
-): Promise<WhatIfResponse> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
-  const url = new URL(`${JAVA_API_URL}/api/market/whatif`);
-  url.searchParams.set("parameter", parameter);
-  url.searchParams.set("startValue", String(startValue));
-  url.searchParams.set("endValue", String(endValue));
-  url.searchParams.set("steps", String(steps));
-
-  try {
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const err: ApiError = await res.json().catch(() => ({ detail: "Unknown error" }));
-      throw new Error(err.detail || `HTTP ${res.status}`);
-    }
-
-    return res.json();
-  } catch (e) {
-    clearTimeout(timeout);
-    if (e instanceof Error && e.name === "AbortError") {
-      throw new Error("请求超时，请稍后重试");
-    }
-    throw e;
-  }
-}
-
-export async function estimatePrice(
-  features: PropertyFeatures
-): Promise<EstimateResponse> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const res = await fetch(`${PYTHON_API_URL}/api/estimate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(features),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const err: ApiError = await res.json().catch(() => ({ detail: "Unknown error" }));
-      throw new Error(err.detail || `HTTP ${res.status}`);
-    }
-
-    return res.json();
-  } catch (e) {
-    clearTimeout(timeout);
-    if (e instanceof Error && e.name === "AbortError") {
-      throw new Error("请求超时，请稍后重试");
-    }
-    throw e;
-  }
 }
