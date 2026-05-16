@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     ml_api_url: str = "http://localhost:8000"
     ml_api_timeout: float = 10.0
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
     port: int = 8001
 
     @property
