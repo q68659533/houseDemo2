@@ -44,11 +44,21 @@ Use the custom Tailwind color palettes defined in `tailwind.config.ts`:
 - Validation rules must match the Python backend Pydantic models exactly
 
 ### API Client Pattern
-- Use `AbortController` with a timeout for all fetch calls
-- Wrap errors in descriptive messages; handle `AbortError` as timeout
+- All API calls go through `apiFetch<T>(url, init?, options?)` in `lib/api.ts`
+- Built-in 10s timeout (`AbortController`) and 1 retry on HTTP 5xx
+- Errors are normalized to `ApiError` instances with `kind` (`"http" | "network" | "timeout"`) and optional `status`
+- New endpoint wrappers should always go through `apiFetch`, not raw `fetch`
 - API types are exported from `lib/api.ts` and shared between client and server
 
+### Data Fetching Hooks (`hooks/use-api.ts`, etc.)
+- `useApi(fn, options?)` — generic hook returning `{ data, loading, error, execute, reset }`
+- `useEstimate()` — wraps `estimatePrice` for the estimator page
+- `useMarketData(options?)` — wraps `fetchMarketData`, auto-fetches on mount; exposes `properties`, `stats`, `refetch`
+- All hooks auto-show an error toast via the global `ToastProvider` (disable with `toastOnError: false`)
+- `execute` returns the data on success or `null` on error — no exception escapes the hook
+
 ### Toast Notifications
-- Simple hook-based system in `hooks/use-toast.ts` with auto-dismiss after 5s
-- Toast container is a fixed-position component rendered at page level
-- Supports error, success, and info types with color-coded borders
+- Global context provider in `components/ui/toast-provider.tsx` — already mounted in `app/layout.tsx`
+- Import `useToast` from `hooks/use-toast` anywhere in the tree — no need to render `<ToastContainer>` at the page level
+- Throws if used outside `<ToastProvider>`
+- Auto-dismiss after 5s; supports `error` / `success` / `info` types with color-coded borders

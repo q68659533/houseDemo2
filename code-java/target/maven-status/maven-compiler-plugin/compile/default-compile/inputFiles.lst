@@ -1,0 +1,13 @@
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\Application.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\config\CorsConfig.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\controller\MarketController.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\BatchPredictionRequest.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\BatchPredictionResponse.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\MarketDataResponse.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\MarketStatsResponse.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\ModelInfoResponse.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\PropertyData.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\dto\WhatIfResponse.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\exception\GlobalExceptionHandler.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\service\MarketDataService.java
+C:\pj\demo2\houseDemo2\code-java\src\main\java\com\property\portal\service\MlClientService.java
