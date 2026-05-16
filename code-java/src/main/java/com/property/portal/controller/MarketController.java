@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/market")
-@CrossOrigin(origins = "${cors.allowed-origins}")
 public class MarketController {
 
     private final MarketDataService marketDataService;
