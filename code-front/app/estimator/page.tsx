@@ -111,6 +111,15 @@ export default function EstimatorPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema) as Resolver<FormData>,
+    defaultValues: {
+      square_footage: 2500,
+      bedrooms: 3,
+      bathrooms: 2,
+      year_built: 2010,
+      lot_size: 8000,
+      distance_to_city_center: 5,
+      school_rating: 7,
+    },
   });
 
   const onSubmit = async (data: FormData) => {
