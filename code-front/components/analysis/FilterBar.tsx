@@ -32,6 +32,72 @@ const bedroomOptions = [
   { value: "5", label: "5+ 间" },
 ];
 
+function StepperInput({
+  value,
+  onChange,
+  placeholder,
+  step,
+  stepMin,
+  stepMax,
+  className = "",
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+  step: number;
+  stepMin?: number;
+  stepMax?: number;
+  className?: string;
+}) {
+  const num = value === "" ? null : Number(value);
+
+  const handleStep = (dir: number) => {
+    if (num === null) {
+      // 空值时，+ 从 stepMin 开始，- 从 stepMax 开始
+      const fallback = dir > 0 ? stepMin ?? 0 : stepMax ?? 0;
+      onChange(String(fallback));
+      return;
+    }
+    const next = num + dir * step;
+    if (stepMin !== undefined && next < stepMin) {
+      onChange("");
+      return;
+    }
+    if (stepMax !== undefined && next > stepMax) {
+      return;
+    }
+    onChange(String(next));
+  };
+
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <button
+        type="button"
+        onClick={() => handleStep(-1)}
+        className="shrink-0 w-7 h-8 rounded-md border border-dk-500/50 bg-dk-900/60 text-slate-400 text-sm flex items-center justify-center transition-colors hover:text-white hover:border-dk-400/50"
+        tabIndex={-1}
+      >
+        −
+      </button>
+      <input
+        type="number"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-20 rounded-lg border border-dk-500/50 bg-dk-900/60 px-2 py-2 text-sm text-white placeholder-slate-600 transition-all outline-none focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20 text-center"
+      />
+      <button
+        type="button"
+        onClick={() => handleStep(1)}
+        className="shrink-0 w-7 h-8 rounded-md border border-dk-500/50 bg-dk-900/60 text-slate-400 text-sm flex items-center justify-center transition-colors hover:text-white hover:border-dk-400/50"
+        tabIndex={-1}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export default function FilterBar({ filters, onChange, onApply, onReset }: FilterBarProps) {
   const update = (key: keyof FilterState, value: string) => {
     onChange({ ...filters, [key]: value });
@@ -60,20 +126,22 @@ export default function FilterBar({ filters, onChange, onApply, onReset }: Filte
         <div className="space-y-1.5">
           <label className="block text-xs font-medium text-slate-400">建造年份范围</label>
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              placeholder="最早"
+            <StepperInput
               value={filters.yearMin}
-              onChange={(e) => update("yearMin", e.target.value)}
-              className="w-24 rounded-lg border border-dk-500/50 bg-dk-900/60 px-3 py-2 text-sm text-white placeholder-slate-600 transition-all outline-none focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20"
+              onChange={(v) => update("yearMin", v)}
+              placeholder="最早"
+              step={1}
+              stepMin={2000}
+              stepMax={2026}
             />
             <span className="text-slate-500 text-sm">—</span>
-            <input
-              type="number"
-              placeholder="最晚"
+            <StepperInput
               value={filters.yearMax}
-              onChange={(e) => update("yearMax", e.target.value)}
-              className="w-24 rounded-lg border border-dk-500/50 bg-dk-900/60 px-3 py-2 text-sm text-white placeholder-slate-600 transition-all outline-none focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20"
+              onChange={(v) => update("yearMax", v)}
+              placeholder="最晚"
+              step={1}
+              stepMin={2000}
+              stepMax={2026}
             />
           </div>
         </div>
@@ -82,20 +150,22 @@ export default function FilterBar({ filters, onChange, onApply, onReset }: Filte
         <div className="space-y-1.5">
           <label className="block text-xs font-medium text-slate-400">面积范围 (sq ft)</label>
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              placeholder="最小"
+            <StepperInput
               value={filters.areaMin}
-              onChange={(e) => update("areaMin", e.target.value)}
-              className="w-24 rounded-lg border border-dk-500/50 bg-dk-900/60 px-3 py-2 text-sm text-white placeholder-slate-600 transition-all outline-none focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20"
+              onChange={(v) => update("areaMin", v)}
+              placeholder="最小"
+              step={100}
+              stepMin={500}
+              stepMax={50000}
             />
             <span className="text-slate-500 text-sm">—</span>
-            <input
-              type="number"
-              placeholder="最大"
+            <StepperInput
               value={filters.areaMax}
-              onChange={(e) => update("areaMax", e.target.value)}
-              className="w-24 rounded-lg border border-dk-500/50 bg-dk-900/60 px-3 py-2 text-sm text-white placeholder-slate-600 transition-all outline-none focus:border-ac-blue focus:ring-2 focus:ring-ac-blue/20"
+              onChange={(v) => update("areaMax", v)}
+              placeholder="最大"
+              step={100}
+              stepMin={500}
+              stepMax={50000}
             />
           </div>
         </div>
