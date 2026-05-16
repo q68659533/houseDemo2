@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FeatureChart } from "./FeatureChart";
 import { saveToHistory } from "@/lib/history";
 import type { EstimateResponse } from "@/lib/api";
@@ -28,6 +28,15 @@ const featureUnits: Record<string, string> = {
 
 export function ResultPanel({ result, onSave }: ResultPanelProps) {
   const [saved, setSaved] = useState(false);
+
+  // Auto-save on first render when result appears
+  useEffect(() => {
+    saveToHistory(result.features, result.prediction);
+    setSaved(true);
+    const timer = setTimeout(() => setSaved(false), 2000);
+    onSave?.();
+    return () => clearTimeout(timer);
+  }, [result]);
 
   const handleSave = () => {
     saveToHistory(result.features, result.prediction);
