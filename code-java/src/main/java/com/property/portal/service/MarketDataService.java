@@ -1,51 +1,79 @@
 package com.property.portal.service;
 
 import com.property.portal.dto.*;
+import com.property.portal.entity.Property;
+import com.property.portal.mapper.PropertyMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.random.RandomGenerator;
-import java.util.random.RandomGeneratorFactory;
 
 @Service
 public class MarketDataService {
 
     private final MlClientService mlClientService;
-    private final RandomGenerator random;
+    private final PropertyMapper propertyMapper;
 
-    public MarketDataService(MlClientService mlClientService) {
+    public MarketDataService(MlClientService mlClientService, PropertyMapper propertyMapper) {
         this.mlClientService = mlClientService;
-        this.random = RandomGeneratorFactory.of("L64X256MixRandom").create();
+        this.propertyMapper = propertyMapper;
     }
 
     public MarketDataResponse generateMarketData() {
-        List<PropertyData> properties = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            properties.add(generateRandomProperty());
+        List<Property> dbProperties = propertyMapper.selectList(null);
+
+        if (dbProperties == null || dbProperties.isEmpty()) {
+            return new MarketDataResponse(new ArrayList<>(), 0, Instant.now().toString());
         }
 
-        List<BatchPredictionRequest.PropertyInput> inputs = properties.stream()
+        List<BatchPredictionRequest.PropertyInput> inputs = dbProperties.stream()
                 .map(p -> new BatchPredictionRequest.PropertyInput(
-                        p.squareFootage(), p.bedrooms(), p.bathrooms(),
-                        p.yearBuilt(), p.lotSize(), p.distanceToCityCenter(), p.schoolRating()))
+                        p.getSquareFootage(), p.getBedrooms(), p.getBathrooms(),
+                        p.getYearBuilt(), p.getLotSize(), p.getDistanceToCityCenter(), p.getSchoolRating()))
                 .toList();
 
         BatchPredictionResponse predictionResponse = mlClientService.batchPredict(new BatchPredictionRequest(inputs));
         List<Double> predictions = predictionResponse.predictions();
 
         List<PropertyData> withPrices = new ArrayList<>();
-        for (int i = 0; i < properties.size(); i++) {
-            PropertyData p = properties.get(i);
+        for (int i = 0; i < dbProperties.size(); i++) {
+            Property p = dbProperties.get(i);
             withPrices.add(new PropertyData(
-                    p.squareFootage(), p.bedrooms(), p.bathrooms(),
-                    p.yearBuilt(), p.lotSize(), p.distanceToCityCenter(), p.schoolRating(),
+                    p.getSquareFootage(), p.getBedrooms(), p.getBathrooms(),
+                    p.getYearBuilt(), p.getLotSize(), p.getDistanceToCityCenter(), p.getSchoolRating(),
                     predictions.get(i)));
         }
 
         return new MarketDataResponse(withPrices, withPrices.size(), Instant.now().toString());
+    }
+
+    public MarketStatsResponse generateMarketStats() {
+        List<Property> dbProperties = propertyMapper.selectList(null);
+
+        if (dbProperties == null || dbProperties.isEmpty()) {
+            return new MarketStatsResponse(0, 0, 0, 0);
+        }
+
+        List<BatchPredictionRequest.PropertyInput> inputs = dbProperties.stream()
+                .map(p -> new BatchPredictionRequest.PropertyInput(
+                        p.getSquareFootage(), p.getBedrooms(), p.getBathrooms(),
+                        p.getYearBuilt(), p.getLotSize(), p.getDistanceToCityCenter(), p.getSchoolRating()))
+                .toList();
+
+        BatchPredictionResponse predictionResponse = mlClientService.batchPredict(new BatchPredictionRequest(inputs));
+        List<Double> predictions = predictionResponse.predictions();
+
+        List<PropertyData> withPrices = new ArrayList<>();
+        for (int i = 0; i < dbProperties.size(); i++) {
+            Property p = dbProperties.get(i);
+            withPrices.add(new PropertyData(
+                    p.getSquareFootage(), p.getBedrooms(), p.getBathrooms(),
+                    p.getYearBuilt(), p.getLotSize(), p.getDistanceToCityCenter(), p.getSchoolRating(),
+                    predictions.get(i)));
+        }
+
+        return computeStats(withPrices);
     }
 
     public MarketStatsResponse computeStats(List<PropertyData> properties) {
@@ -101,19 +129,6 @@ public class MarketDataService {
         }
 
         return new WhatIfResponse(parameter, points);
-    }
-
-    private PropertyData generateRandomProperty() {
-        return new PropertyData(
-                random.nextDouble(800, 4500),
-                random.nextInt(1, 6),
-                random.nextInt(1, 5),
-                random.nextInt(1950, 2024),
-                random.nextDouble(2000, 15000),
-                random.nextDouble(0.5, 25.0),
-                random.nextInt(1, 11),
-                null
-        );
     }
 
     private BatchPredictionRequest.PropertyInput buildWhatIfInput(String parameter, double value) {

@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -14,7 +15,6 @@
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-web:3.4.4" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:3.4.4" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:3.4.4" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-autoconfigure:3.4.4" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-logging:3.4.4" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.5.18" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.5.18" level="project" />
@@ -52,6 +52,22 @@
     <orderEntry type="library" name="Maven: com.github.ben-manes.caffeine:caffeine:3.1.8" level="project" />
     <orderEntry type="library" name="Maven: org.checkerframework:checker-qual:3.37.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.errorprone:error_prone_annotations:2.21.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-spring-boot3-starter:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-core:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-annotation:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-spring:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-extension:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: org.mybatis:mybatis:3.5.19" level="project" />
+    <orderEntry type="library" name="Maven: org.mybatis:mybatis-spring:3.0.4" level="project" />
+    <orderEntry type="library" name="Maven: com.baomidou:mybatis-plus-spring-boot-autoconfigure:3.5.10.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-autoconfigure:3.4.4" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-jdbc:3.4.4" level="project" />
+    <orderEntry type="library" name="Maven: com.zaxxer:HikariCP:5.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-jdbc:6.2.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-tx:6.2.5" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: com.mysql:mysql-connector-j:9.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.36" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-starter-test:3.4.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test:3.4.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test-autoconfigure:3.4.4" level="project" />
@@ -84,5 +100,6 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-jcl:6.2.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-test:6.2.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.xmlunit:xmlunit-core:2.10.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.h2database:h2:2.3.232" level="project" />
   </component>
 </module>

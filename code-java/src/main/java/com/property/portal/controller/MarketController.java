@@ -32,11 +32,12 @@ public class MarketController {
     @GetMapping("/stats")
     public ResponseEntity<MarketStatsResponse> getMarketStats(
             @RequestParam(required = false) List<PropertyData> properties) {
+        MarketStatsResponse stats;
         if (properties == null) {
-            MarketDataResponse data = marketDataService.generateMarketData();
-            properties = data.properties();
+            stats = marketDataService.generateMarketStats();
+        } else {
+            stats = marketDataService.computeStats(properties);
         }
-        MarketStatsResponse stats = marketDataService.computeStats(properties);
         return ResponseEntity.ok(stats);
     }
 

@@ -1,6 +1,7 @@
 package com.property.portal.controller;
 
 import com.property.portal.dto.*;
+import com.property.portal.mapper.PropertyMapper;
 import com.property.portal.service.MarketDataService;
 import com.property.portal.service.MlClientService;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class MarketControllerTest {
     @MockitoBean
     private MlClientService mlClientService;
 
+    @MockitoBean
+    private PropertyMapper propertyMapper;
+
     @Test
     void getMarketDataReturnsProperties() throws Exception {
         PropertyData p1 = new PropertyData(2000, 3, 2, 2010, 5000, 5.0, 8, 420000.0);
@@ -45,12 +49,9 @@ class MarketControllerTest {
 
     @Test
     void getMarketStatsReturnsComputedStats() throws Exception {
-        PropertyData p1 = new PropertyData(2000, 3, 2, 2010, 5000, 5.0, 8, 420000.0);
-        MarketDataResponse data = new MarketDataResponse(List.of(p1), 1, Instant.now().toString());
         MarketStatsResponse stats = new MarketStatsResponse(420000.0, 420000.0, 1, 210.0);
 
-        when(marketDataService.generateMarketData()).thenReturn(data);
-        when(marketDataService.computeStats(any())).thenReturn(stats);
+        when(marketDataService.generateMarketStats()).thenReturn(stats);
 
         mockMvc.perform(get("/api/market/stats"))
                 .andExpect(status().isOk())
