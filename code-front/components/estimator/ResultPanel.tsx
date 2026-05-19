@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FeatureChart } from "./FeatureChart";
 import { saveToHistory } from "@/lib/history";
 import type { EstimateResponse } from "@/lib/api";
@@ -28,9 +28,12 @@ const featureUnits: Record<string, string> = {
 
 export function ResultPanel({ result, onSave }: ResultPanelProps) {
   const [saved, setSaved] = useState(false);
+  const lastSavedRef = useRef<string | null>(null);
 
-  // Auto-save on first render when result appears
+  // Auto-save on first render when result appears (deduped by generated_at)
   useEffect(() => {
+    if (lastSavedRef.current === result.generated_at) return;
+    lastSavedRef.current = result.generated_at;
     saveToHistory(result.features, result.prediction);
     setSaved(true);
     const timer = setTimeout(() => setSaved(false), 2000);
